@@ -1,125 +1,483 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>TOF Calculator</title>
 
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #0f0f14;
-    color: #ffffff;
-    display: flex;
-    justify-content: center;
-    padding: 20px;
+  :root{
+    --bg0:#07070b;
+    --bg1:#0b0b12;
+    --stroke:rgba(255,255,255,.10);
+    --stroke2:rgba(255,255,255,.14);
+    --text:#f5f7ff;
+    --muted:rgba(245,247,255,.70);
+    --muted2:rgba(245,247,255,.55);
+    --accent:#7dd3fc;
+    --accent2:#a78bfa;
+    --shadow: 0 18px 50px rgba(0,0,0,.55);
+    --radius: 18px;
   }
-  .calculator {
-    background: #1a1a24;
-    padding: 20px;
+
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+
+  body{
+    margin:0;
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    color:var(--text);
+    background:
+      radial-gradient(1200px 500px at 20% 15%, rgba(125,211,252,.18), transparent 55%),
+      radial-gradient(900px 450px at 85% 25%, rgba(167,139,250,.18), transparent 60%),
+      radial-gradient(900px 600px at 50% 95%, rgba(52,211,153,.12), transparent 55%),
+      linear-gradient(180deg, var(--bg0), var(--bg1));
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:28px 16px 40px;
+  }
+
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    pointer-events:none;
+    opacity:.10;
+    mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+  }
+
+  .calculator{
+    width:min(620px, 100%);
+    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+    border:1px solid var(--stroke);
+    border-radius: calc(var(--radius) + 6px);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    overflow:hidden;
+  }
+
+  header{
+    padding:22px 22px 14px;
+    border-bottom:1px solid var(--stroke);
+    background: linear-gradient(135deg, rgba(125,211,252,.10), rgba(167,139,250,.10));
+  }
+  header h2{
+    margin:0;
+    font-size:22px;
+    letter-spacing:.2px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .badge{
+    font-size:12px;
+    color:rgba(245,247,255,.78);
+    border:1px solid rgba(255,255,255,.14);
+    padding:6px 10px;
+    border-radius:999px;
+    background:rgba(0,0,0,.18);
+  }
+
+  .content{
+    padding:18px 22px 22px;
+    display:grid;
+    gap:14px;
+  }
+
+  .row{ display:grid; gap:10px; }
+
+  label{
+    font-weight:650;
+    font-size:13px;
+    color:rgba(245,247,255,.86);
+    letter-spacing:.2px;
+  }
+
+  input[type="number"]{
+    width:100%;
+    padding:12px 12px;
+    font-size:16px;
+    color:var(--text);
+    background: rgba(10,10,16,.60);
+    border:1px solid var(--stroke2);
     border-radius: 12px;
-    max-width: 560px;
-    width: 100%;
+    outline:none;
+    transition: border-color .18s ease, box-shadow .18s ease, transform .06s ease;
   }
-  h2 { text-align: center; margin-bottom: 16px; }
-  label { font-weight: bold; display: block; margin-bottom: 6px; }
+  input[type="number"]:focus{
+    border-color: rgba(125,211,252,.55);
+    box-shadow: 0 0 0 4px rgba(125,211,252,.12);
+  }
+  input[type="number"]:active{ transform: translateY(1px); }
 
-  input[type="number"] {
-    width: 100%;
-    padding: 10px;
-    font-size: 16px;
-    border-radius: 8px;
-    border: none;
-    margin-bottom: 16px;
+  .panel{
+    background: rgba(10,10,16,.50);
+    border:1px solid var(--stroke);
+    border-radius: var(--radius);
+    padding:14px;
   }
 
-  .perks, .result {
-    background: #11111a;
+  .panel-title{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin:0 0 10px;
+    font-size:13px;
+    color:rgba(245,247,255,.90);
+    letter-spacing:.2px;
+    font-weight:700;
+  }
+
+  .toggle-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .toggle-label{
+    font-weight:600;
+    color:var(--muted);
+    font-size:13px;
+  }
+
+  .switch{
+    position:relative;
+    width:44px; height:26px;
+    flex:0 0 auto;
+  }
+  .switch input{ opacity:0; width:0; height:0; }
+  .slider{
+    position:absolute; inset:0;
+    background: rgba(255,255,255,.10);
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:999px;
+    transition: .18s ease;
+  }
+  .slider::before{
+    content:"";
+    position:absolute;
+    height:20px; width:20px;
+    left:3px; top:2px;
+    border-radius:999px;
+    background: linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.55));
+    box-shadow: 0 10px 16px rgba(0,0,0,.35);
+    transition: .18s ease;
+  }
+  .switch input:checked + .slider{
+    background: rgba(125,211,252,.22);
+    border-color: rgba(125,211,252,.35);
+  }
+  .switch input:checked + .slider::before{
+    transform: translateX(18px);
+    background: linear-gradient(180deg, rgba(125,211,252,.95), rgba(167,139,250,.75));
+  }
+
+  .tier-grid{ display:grid; gap:10px; }
+  .seg{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:8px;
+  }
+  .seg input{ display:none; }
+  .seg label{
+    cursor:pointer;
+    user-select:none;
+    text-align:center;
+    padding:10px 8px;
+    border-radius: 12px;
+    border:1px solid rgba(255,255,255,.14);
+    background: rgba(0,0,0,.12);
+    color: rgba(245,247,255,.72);
+    font-weight:700;
+    font-size:12px;
+    transition: transform .06s ease, border-color .18s ease, background .18s ease, color .18s ease, box-shadow .18s ease;
+  }
+  .seg label:hover{
+    border-color: rgba(255,255,255,.22);
+    background: rgba(255,255,255,.06);
+  }
+  .seg input:checked + label{
+    color: rgba(10,10,16,.95);
+    background: linear-gradient(135deg, rgba(125,211,252,.95), rgba(167,139,250,.85));
+    border-color: transparent;
+    box-shadow: 0 10px 24px rgba(125,211,252,.14);
+  }
+  .seg input:active + label{ transform: translateY(1px); }
+
+  .tier-help{
+    margin-top:2px;
+    font-size:12px;
+    color: var(--muted2);
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+  }
+
+  .checklist{
+    display:grid;
+    gap:10px;
+    margin-top:10px;
+  }
+  .check{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 10px;
+    border-radius: 14px;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.14);
+    transition: border-color .18s ease, background .18s ease, transform .06s ease;
+  }
+  .check:hover{
+    border-color: rgba(255,255,255,.18);
+    background: rgba(255,255,255,.05);
+  }
+  .check:active{ transform: translateY(1px); }
+
+  input[type="checkbox"].addon{
+    width:18px; height:18px;
+    accent-color: var(--accent);
+  }
+  .check .name{
+    font-weight:650;
+    color: rgba(245,247,255,.86);
+    font-size:13px;
+  }
+  .check .value{
+    margin-left:auto;
+    font-size:12px;
+    color: rgba(125,211,252,.9);
+    font-weight:800;
+    border:1px solid rgba(125,211,252,.25);
+    padding:4px 8px;
+    border-radius:999px;
+    background: rgba(125,211,252,.10);
+  }
+
+  .results{
+    display:grid;
+    gap:10px;
+  }
+  .result{
+    background: rgba(8,8,12,.55);
+    border:1px solid rgba(255,255,255,.10);
+    border-radius: var(--radius);
+    padding:12px 14px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .result .label{
+    color: var(--muted);
+    font-weight:650;
+    font-size:13px;
+  }
+  .result .value{
+    font-weight:900;
+    letter-spacing:.2px;
+    color: var(--accent);
+  }
+
+  /* copy button next to total */
+  .value-wrap{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:10px;
+    min-width: 160px;
+  }
+  .icon-btn{
+    border:1px solid rgba(255,255,255,.14);
+    background: rgba(255,255,255,.06);
+    color: rgba(245,247,255,.88);
+    padding:8px 10px;
+    border-radius: 12px;
+    cursor:pointer;
+    font-weight:800;
+    font-size:12px;
+    transition: transform .06s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
+  }
+  .icon-btn:hover{
+    background: rgba(255,255,255,.10);
+    border-color: rgba(255,255,255,.22);
+    box-shadow: 0 10px 24px rgba(0,0,0,.28);
+  }
+  .icon-btn:active{ transform: translateY(1px); }
+
+  .note, .tiny{
+    font-size:12px;
+    color: var(--muted2);
+    text-align:center;
+    margin:10px 0 0;
+  }
+
+  .collapse{
+    display:grid;
+    gap:10px;
+    overflow:hidden;
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: max-height .25s ease, opacity .2s ease, transform .25s ease;
+  }
+  .collapse.open{
+    max-height: 420px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .reset-btn{
+    margin-top: 8px;
+    width: 100%;
     padding: 12px;
-    border-radius: 10px;
-    margin-bottom: 12px;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: .3px;
+    color: rgba(10,10,16,.95);
+    background: linear-gradient(135deg, #7dd3fc, #a78bfa);
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    box-shadow: 0 12px 28px rgba(125,211,252,.22);
+    transition: transform .06s ease, box-shadow .18s ease, filter .18s ease;
   }
-
-  .perk-row, .toggle-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 6px 0;
+  .reset-btn:hover{
+    filter: brightness(1.05);
+    box-shadow: 0 16px 36px rgba(125,211,252,.30);
   }
+  .reset-btn:active{ transform: translateY(1px); }
 
-  .perk-row input,
-  .toggle-row input { transform: scale(1.15); }
-
-  .result span { color: #7dd3fc; font-weight: bold; }
-
-  .note, .tiny {
-    font-size: 12px;
-    color: #aaa;
-    text-align: center;
-  }
-
-  .hidden {
-    display: none;
+  @media (max-width: 520px){
+    header{ padding:18px 16px 12px; }
+    .content{ padding:14px 16px 18px; }
+    .seg{ grid-template-columns: 1fr 1fr; }
+    .badge{ display:none; }
+    .value-wrap{ min-width: 0; }
   }
 </style>
 </head>
 
 <body>
+  <div class="calculator">
+    <header>
+      <h2>
+        TOF Calculator
+        <span class="badge">Base + Perks • Instant</span>
+      </h2>
+    </header>
 
-<div class="calculator">
-  <h2>TOF Calculator</h2>
+    <div class="content">
+      <div class="row">
+        <label for="refreshes">Number of Refreshes</label>
+        <input type="number" id="refreshes" min="0" value="1" inputmode="numeric" />
+      </div>
 
-  <label>Number of Refreshes</label>
-  <input type="number" id="refreshes" min="0" value="1">
+      <div class="row">
+        <label for="baseHours">Base Hours per Refresh</label>
+        <input type="number" id="baseHours" min="0" value="20" inputmode="numeric" />
+      </div>
 
-  <label>Base Hours per Refresh</label>
-  <input type="number" id="baseHours" min="0" value="20">
+      <div class="panel">
+        <div class="toggle-row">
+          <div>
+            <div class="panel-title" style="margin:0;">Friend Time</div>
+            <div class="toggle-label">Show friend timer results</div>
+          </div>
 
-  <!-- Friend visibility toggle (OFF by default) -->
-  <div class="perks">
-    <div class="toggle-row">
-      <input type="checkbox" id="toggleFriend">
-      <label for="toggleFriend" style="margin:0;font-weight:normal;">
-        Show Friend Time
-      </label>
+          <label class="switch" aria-label="Show Friend Time">
+            <input type="checkbox" id="toggleFriend" />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">
+          <span>Role Perks</span>
+          <span style="color:rgba(245,247,255,.55); font-weight:700; font-size:12px;">Tier + Add-ons</span>
+        </div>
+
+        <div class="tier-grid">
+          <div class="seg" role="radiogroup" aria-label="Tier roles">
+            <input type="radio" id="tier0" name="tier" value="0" checked />
+            <label for="tier0">None</label>
+
+            <input type="radio" id="tier1" name="tier" value="1" />
+            <label for="tier1">Bronze +1h</label>
+
+            <input type="radio" id="tier2" name="tier" value="2" />
+            <label for="tier2">Gold +2h</label>
+
+            <input type="radio" id="tier3" name="tier" value="3" />
+            <label for="tier3">Diamond +3h</label>
+          </div>
+
+          <div class="tier-help">
+            <span>Tier roles are mutually exclusive.</span>
+            <span>Add-ons stack.</span>
+          </div>
+        </div>
+
+        <div class="checklist" aria-label="Add-ons">
+          <label class="check">
+            <input type="checkbox" class="addon" value="1" />
+            <span class="name">Radiant</span>
+            <span class="value">+1h</span>
+          </label>
+
+          <label class="check">
+            <input type="checkbox" class="addon" value="1" />
+            <span class="name">Santa’s Elves</span>
+            <span class="value">+1h</span>
+          </label>
+
+          <label class="check">
+            <input type="checkbox" class="addon" value="2" />
+            <span class="name">Santa’s Reindeers</span>
+            <span class="value">+2h</span>
+          </label>
+
+          <label class="check">
+            <input type="checkbox" class="addon" value="3" />
+            <span class="name">Star of Bethlehem</span>
+            <span class="value">+3h</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="results">
+        <div class="result">
+          <div class="label">Your Total Time</div>
+          <div class="value-wrap">
+            <div class="value" id="yourTime">—</div>
+            <button id="copyBtn" class="icon-btn" type="button" aria-label="Copy your total time">Copy</button>
+          </div>
+        </div>
+
+        <div id="friendSection" class="collapse">
+          <div class="result">
+            <div class="label">Friend Time (per Refresh)</div>
+            <div class="value" id="friendPer">—</div>
+          </div>
+
+          <div class="result">
+            <div class="label">Friend Total Time</div>
+            <div class="value" id="friendTotal">—</div>
+          </div>
+
+          <div class="note">Friend timer cannot be paused</div>
+        </div>
+
+        <button id="resetBtn" class="reset-btn" type="button">Reset</button>
+      </div>
+
+      <div class="tiny">Tip: Use your keyboard ↑/↓ on number fields for quick tweaks.</div>
     </div>
   </div>
-
-  <div class="perks">
-    <label>Role Perks</label>
-
-    <!-- Tier roles -->
-    <div class="perk-row"><input type="radio" name="tier" value="0" checked> None</div>
-    <div class="perk-row"><input type="radio" name="tier" value="1"> Bronze Refresher (+1h)</div>
-    <div class="perk-row"><input type="radio" name="tier" value="2"> Gold Refresher (+2h)</div>
-    <div class="perk-row"><input type="radio" name="tier" value="3"> Diamond Refresher (+3h)</div>
-
-    <div style="height:12px;"></div>
-
-    <!-- Add-ons -->
-    <div class="perk-row"><input type="checkbox" class="addon" value="1"> Radiant (+1h)</div>
-    <div class="perk-row"><input type="checkbox" class="addon" value="1"> Santa’s Elves (+1h)</div>
-    <div class="perk-row"><input type="checkbox" class="addon" value="2"> Santa’s Reindeers (+2h)</div>
-    <div class="perk-row"><input type="checkbox" class="addon" value="3"> Star of Bethlehem (+3h)</div>
-
-    <div class="tiny">Tier roles are mutually exclusive. Add-ons stack.</div>
-  </div>
-
-  <div class="result">
-    Your Total Time: <span id="yourTime">—</span>
-  </div>
-
-  <!-- Friend results (hidden by default) -->
-  <div id="friendSection" class="hidden">
-    <div class="result">
-      Friend Time (per Refresh): <span id="friendPer">—</span>
-    </div>
-    <div class="result">
-      Friend Total Time: <span id="friendTotal">—</span>
-    </div>
-    <div class="note">Friend timer cannot be paused</div>
-  </div>
-</div>
 
 <script>
   function tierBonus() {
@@ -139,6 +497,10 @@
     return Math.min(baseHours * 0.2 + (refreshes - 1), 8);
   }
 
+  function round1(n){
+    return Math.round(n * 10) / 10;
+  }
+
   function calculate() {
     const r = Math.max(0, Math.floor(refreshes.value || 0));
     const base = Math.max(0, Number(baseHours.value || 0));
@@ -147,15 +509,36 @@
     const yourPer = base + bonus;
     const friendPer = friendHoursPerRefresh(r, base);
 
-    yourTime.textContent =
-      `${yourPer * r}h (${base}h base + ${bonus}h perks)`;
-
-    friendPerSpan.textContent = `${friendPer}h`;
-    friendTotal.textContent = `${friendPer * r}h`;
+    yourTime.textContent = `${round1(yourPer * r)}h (${base}h base + ${bonus}h perks)`;
+    friendPerSpan.textContent = `${round1(friendPer)}h`;
+    friendTotal.textContent = `${round1(friendPer * r)}h`;
   }
 
   function toggleFriendVisibility() {
-    friendSection.classList.toggle("hidden", !toggleFriend.checked);
+    friendSection.classList.toggle("open", toggleFriend.checked);
+  }
+
+  async function copyText(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (e) {
+      // Fallback for older browsers / insecure contexts
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        return ok;
+      } catch {
+        return false;
+      }
+    }
   }
 
   const refreshes = document.getElementById("refreshes");
@@ -165,17 +548,47 @@
   const friendTotal = document.getElementById("friendTotal");
   const toggleFriend = document.getElementById("toggleFriend");
   const friendSection = document.getElementById("friendSection");
+  const resetBtn = document.getElementById("resetBtn");
+  const copyBtn = document.getElementById("copyBtn");
 
   document.querySelectorAll("input").forEach(i => {
     i.addEventListener("input", calculate);
     i.addEventListener("change", calculate);
   });
 
-  toggleFriend.addEventListener("change", toggleFriendVisibility);
+  toggleFriend.addEventListener("change", () => {
+    toggleFriendVisibility();
+    calculate();
+  });
+
+  resetBtn.addEventListener("click", () => {
+    refreshes.value = 1;
+    baseHours.value = 20;
+
+    document.querySelector('input[name="tier"][value="0"]').checked = true;
+    document.querySelectorAll('.addon').forEach(a => a.checked = false);
+
+    toggleFriend.checked = false;
+    toggleFriendVisibility();
+    calculate();
+  });
+
+  copyBtn.addEventListener("click", async () => {
+    const textToCopy = yourTime.textContent.trim();
+    const ok = await copyText(textToCopy);
+
+    const prev = copyBtn.textContent;
+    copyBtn.textContent = ok ? "Copied!" : "Copy failed";
+    copyBtn.disabled = true;
+
+    setTimeout(() => {
+      copyBtn.textContent = prev;
+      copyBtn.disabled = false;
+    }, 900);
+  });
 
   calculate();
-  toggleFriendVisibility(); // ensure hidden on load
+  toggleFriendVisibility();
 </script>
-
 </body>
 </html>
