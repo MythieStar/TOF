@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TOF Buddy Pass Calculator</title>
+<title>TOF Calculator</title>
 
 <style>
   body {
@@ -18,113 +18,112 @@
     background: #1a1a24;
     padding: 20px;
     border-radius: 12px;
-    max-width: 540px;
+    max-width: 560px;
     width: 100%;
   }
   h2 { text-align: center; margin-bottom: 16px; }
   label { font-weight: bold; display: block; margin-bottom: 6px; }
+
   input[type="number"] {
-    width: 100%; padding: 10px; font-size: 16px;
-    border-radius: 8px; border: none; margin-bottom: 16px;
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: none;
+    margin-bottom: 16px;
   }
-  .perks {
+
+  .perks, .result {
     background: #11111a;
     padding: 12px;
     border-radius: 10px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
-  .perk-row {
-    display: flex; align-items: center; gap: 10px; padding: 6px 0;
+
+  .perk-row, .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
   }
-  .perk-row input { transform: scale(1.15); }
-  .result {
-    background: #11111a; padding: 12px;
-    border-radius: 8px; margin-bottom: 10px;
-  }
+
+  .perk-row input,
+  .toggle-row input { transform: scale(1.15); }
+
   .result span { color: #7dd3fc; font-weight: bold; }
-  .note { font-size: 13px; color: #aaa; margin-top: 10px; text-align: center; }
-  .tiny { font-size: 12px; color: #aaa; margin-top: 6px; line-height: 1.35; }
+
+  .note, .tiny {
+    font-size: 12px;
+    color: #aaa;
+    text-align: center;
+  }
+
+  .hidden {
+    display: none;
+  }
 </style>
 </head>
 
 <body>
 
 <div class="calculator">
-  <h2>TOF Buddy Pass Calculator</h2>
+  <h2>TOF Calculator</h2>
 
   <label>Number of Refreshes</label>
   <input type="number" id="refreshes" min="0" value="1">
 
   <label>Base Hours per Refresh</label>
-  <input type="number" id="baseHours" min="0" value="16">
+  <input type="number" id="baseHours" min="0" value="20">
 
-  <label>Role Perks</label>
+  <!-- Friend visibility toggle (OFF by default) -->
   <div class="perks">
+    <div class="toggle-row">
+      <input type="checkbox" id="toggleFriend">
+      <label for="toggleFriend" style="margin:0;font-weight:normal;">
+        Show Friend Time
+      </label>
+    </div>
+  </div>
 
-    <!-- Tier (radio) -->
-    <div class="perk-row">
-      <input type="radio" name="tier" value="0" checked>
-      <label style="margin:0;font-weight:normal;">None</label>
-    </div>
-    <div class="perk-row">
-      <input type="radio" name="tier" value="3">
-      <label style="margin:0;font-weight:normal;">Diamond Refresher (+3h)</label>
-    </div>
-    <div class="perk-row">
-      <input type="radio" name="tier" value="2">
-      <label style="margin:0;font-weight:normal;">Gold Refresher (+2h)</label>
-    </div>
-    <div class="perk-row">
-      <input type="radio" name="tier" value="1">
-      <label style="margin:0;font-weight:normal;">Bronze Refresher (+1h)</label>
-    </div>
+  <div class="perks">
+    <label>Role Perks</label>
+
+    <!-- Tier roles -->
+    <div class="perk-row"><input type="radio" name="tier" value="0" checked> None</div>
+    <div class="perk-row"><input type="radio" name="tier" value="1"> Bronze Refresher (+1h)</div>
+    <div class="perk-row"><input type="radio" name="tier" value="2"> Gold Refresher (+2h)</div>
+    <div class="perk-row"><input type="radio" name="tier" value="3"> Diamond Refresher (+3h)</div>
+
+    <div style="height:12px;"></div>
 
     <!-- Add-ons -->
-    <div class="perk-row" style="margin-top:8px;">
-      <input type="checkbox" class="addon" value="1" id="radiant">
-      <label for="radiant" style="margin:0;font-weight:normal;">Radiant (+1h)</label>
-    </div>
-    <div class="perk-row">
-      <input type="checkbox" class="addon" value="3" id="star">
-      <label for="star" style="margin:0;font-weight:normal;">Star of Bethlehem (+3h)</label>
-    </div>
-    <div class="perk-row">
-      <input type="checkbox" class="addon" value="2" id="reindeer">
-      <label for="reindeer" style="margin:0;font-weight:normal;">Santa’s Reindeers (+2h)</label>
-    </div>
-    <div class="perk-row">
-      <input type="checkbox" class="addon" value="1" id="elves">
-      <label for="elves" style="margin:0;font-weight:normal;">Santa’s Elves (+1h)</label>
-    </div>
+    <div class="perk-row"><input type="checkbox" class="addon" value="1"> Radiant (+1h)</div>
+    <div class="perk-row"><input type="checkbox" class="addon" value="1"> Santa’s Elves (+1h)</div>
+    <div class="perk-row"><input type="checkbox" class="addon" value="2"> Santa’s Reindeers (+2h)</div>
+    <div class="perk-row"><input type="checkbox" class="addon" value="3"> Star of Bethlehem (+3h)</div>
 
-    <div class="tiny">
-      Tier roles are mutually exclusive.<br>
-      All add-on roles stack.
-    </div>
+    <div class="tiny">Tier roles are mutually exclusive. Add-ons stack.</div>
   </div>
 
   <div class="result">
     Your Total Time: <span id="yourTime">—</span>
   </div>
-  <div class="result">
-    Friend Time (per Refresh): <span id="friendPer">—</span>
-  </div>
-  <div class="result">
-    Friend Total Time: <span id="friendTotal">—</span>
-  </div>
 
-  <div class="note">Friend timer cannot be paused</div>
+  <!-- Friend results (hidden by default) -->
+  <div id="friendSection" class="hidden">
+    <div class="result">
+      Friend Time (per Refresh): <span id="friendPer">—</span>
+    </div>
+    <div class="result">
+      Friend Total Time: <span id="friendTotal">—</span>
+    </div>
+    <div class="note">Friend timer cannot be paused</div>
+  </div>
 </div>
 
 <script>
-  function friendHoursPerRefresh(n) {
-    if (n <= 0) return 0;
-    return Math.min(3 + n, 8);
-  }
-
   function tierBonus() {
-    const t = document.querySelector('input[name="tier"]:checked');
-    return Number(t ? t.value : 0);
+    return Number(document.querySelector('input[name="tier"]:checked').value);
   }
 
   function addonBonus() {
@@ -135,23 +134,47 @@
     return sum;
   }
 
+  function friendHoursPerRefresh(refreshes, baseHours) {
+    if (refreshes <= 0) return 0;
+    return Math.min(baseHours * 0.2 + (refreshes - 1), 8);
+  }
+
   function calculate() {
     const r = Math.max(0, Math.floor(refreshes.value || 0));
     const base = Math.max(0, Number(baseHours.value || 0));
-
     const bonus = tierBonus() + addonBonus();
-    const per = base + bonus;
 
-    yourTime.textContent = `${per * r}h (${per}h / refresh, +${bonus}h perks)`;
-    friendPer.textContent = `${friendHoursPerRefresh(r)}h`;
-    friendTotal.textContent = `${friendHoursPerRefresh(r) * r}h`;
+    const yourPer = base + bonus;
+    const friendPer = friendHoursPerRefresh(r, base);
+
+    yourTime.textContent =
+      `${yourPer * r}h (${base}h base + ${bonus}h perks)`;
+
+    friendPerSpan.textContent = `${friendPer}h`;
+    friendTotal.textContent = `${friendPer * r}h`;
   }
 
-  document.querySelectorAll('input').forEach(i =>
-    i.addEventListener('input', calculate)
-  );
+  function toggleFriendVisibility() {
+    friendSection.classList.toggle("hidden", !toggleFriend.checked);
+  }
+
+  const refreshes = document.getElementById("refreshes");
+  const baseHours = document.getElementById("baseHours");
+  const yourTime = document.getElementById("yourTime");
+  const friendPerSpan = document.getElementById("friendPer");
+  const friendTotal = document.getElementById("friendTotal");
+  const toggleFriend = document.getElementById("toggleFriend");
+  const friendSection = document.getElementById("friendSection");
+
+  document.querySelectorAll("input").forEach(i => {
+    i.addEventListener("input", calculate);
+    i.addEventListener("change", calculate);
+  });
+
+  toggleFriend.addEventListener("change", toggleFriendVisibility);
 
   calculate();
+  toggleFriendVisibility(); // ensure hidden on load
 </script>
 
 </body>
