@@ -340,7 +340,7 @@
     background: linear-gradient(135deg, #7dd3fc, #a78bfa);
     border: none;
     border-radius: 14px;
-    cursor: pointer;
+    cursor:pointer;
     box-shadow: 0 12px 28px rgba(125,211,252,.22);
     transition: transform .06s ease, box-shadow .18s ease, filter .18s ease;
   }
@@ -383,7 +383,7 @@
       <div class="panel">
         <div class="toggle-row">
           <div>
-            <div class="panel-title" style="margin:0;">Friend Time</div>
+            <div class="panel-title" style="margin:0;">Buddy Pass</div>
             <div class="toggle-label">Show friend timer results</div>
           </div>
 
@@ -491,7 +491,8 @@
     return sum;
   }
 
-  // NEW: cap friend scaling at 5 refreshes (no 8h cap)
+  // Friend "per refresh" formula, capped at 5 refreshes.
+  // IMPORTANT: when friend toggle is ON, friend gets 20% of base (transferred from you) + (refresh-1) scaling.
   function friendHoursPerRefresh(refreshes, baseHours) {
     if (refreshes <= 0) return 0;
     const effectiveRefreshes = Math.min(refreshes, 5);
@@ -507,10 +508,15 @@
     const base = Math.max(0, Number(baseHours.value || 0));
     const bonus = tierBonus() + addonBonus();
 
-    const yourPer = base + bonus;
-    const friendPer = friendHoursPerRefresh(r, base);
+    const friendEnabled = toggleFriend.checked;
 
-    yourTime.textContent = `${round1(yourPer * r)}h (${base}h base + ${bonus}h perks)`;
+    // Transfer 20% of base to friend when enabled
+    const yourBase = friendEnabled ? base * 0.8 : base;
+
+    const yourPer = yourBase + bonus;
+    const friendPer = friendEnabled ? friendHoursPerRefresh(r, base) : 0;
+
+    yourTime.textContent = `${round1(yourPer * r)}h (${round1(yourBase)}h base + ${bonus}h perks)`;
     friendPerSpan.textContent = `${round1(friendPer)}h`;
     friendTotal.textContent = `${round1(friendPer * r)}h`;
   }
