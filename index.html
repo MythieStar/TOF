@@ -31,7 +31,7 @@
       radial-gradient(1200px 500px at 20% 15%, rgba(125,211,252,.18), transparent 55%),
       radial-gradient(900px 450px at 85% 25%, rgba(167,139,250,.18), transparent 60%),
       radial-gradient(900px 600px at 50% 95%, rgba(52,211,153,.12), transparent 55%),
-      linear-gradient(180deg, var(--bg0), var(--bg1));
+      linear-gradient(180deg, #07070b, #0b0b12);
     display:flex;
     align-items:flex-start;
     justify-content:center;
@@ -282,7 +282,6 @@
     color: var(--accent);
   }
 
-  /* copy button next to total */
   .value-wrap{
     display:flex;
     align-items:center;
@@ -492,9 +491,11 @@
     return sum;
   }
 
+  // NEW: cap friend scaling at 5 refreshes (no 8h cap)
   function friendHoursPerRefresh(refreshes, baseHours) {
     if (refreshes <= 0) return 0;
-    return Math.min(baseHours * 0.2 + (refreshes - 1), 8);
+    const effectiveRefreshes = Math.min(refreshes, 5);
+    return baseHours * 0.2 + (effectiveRefreshes - 1);
   }
 
   function round1(n){
@@ -523,7 +524,6 @@
       await navigator.clipboard.writeText(text);
       return true;
     } catch (e) {
-      // Fallback for older browsers / insecure contexts
       try {
         const ta = document.createElement("textarea");
         ta.value = text;
