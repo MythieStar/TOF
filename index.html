@@ -516,7 +516,14 @@
     const yourPer = yourBase + bonus;
     const friendPer = friendEnabled ? friendHoursPerRefresh(r, base) : 0;
 
-    yourTime.textContent = `${round1(yourPer * r)}h (${round1(yourBase)}h base + ${bonus}h perks)`;
+    // ✅ Only show "(base + perks)" when there are perks selected
+    const total = round1(yourPer * r);
+    if (bonus > 0) {
+      yourTime.textContent = `${total}h (${round1(yourBase)}h base + ${bonus}h perks)`;
+    } else {
+      yourTime.textContent = `${total}h`;
+    }
+
     friendPerSpan.textContent = `${round1(friendPer)}h`;
     friendTotal.textContent = `${round1(friendPer * r)}h`;
   }
